@@ -1,0 +1,24 @@
+{
+  "name": "entry-points",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "author": "Chris Freeman",
+  "license": "MIT",
+  "scripts": {
+    "build": "rm -rf out temp && node build.js"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.19.4",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "@types/node": "^17.0.18",
+    "fs-extra": "^10.0.0",
+    "klaw": "^4.0.1",
+    "rollup": "^2.67.2",
+    "rollup-plugin-dts": "^4.1.0",
+    "rollup-plugin-typescript2": "^0.31.2",
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {}
+}
