@@ -5,7 +5,6 @@ const { Extractor, ExtractorConfig } = require('@microsoft/api-extractor');
 const { rollup } = require('rollup');
 const typescript = require('@rollup/plugin-typescript');
 const { default: dts } = require('rollup-plugin-dts');
-// const typescript = require('rollup-plugin-typescript2');
 
 async function findPackages() {
   const items = [];
@@ -14,12 +13,6 @@ async function findPackages() {
     if (item.stats.isFile()) {
       if (!path.basename(item.path).startsWith('-')) {
         items.push(new Package(item.path));
-        // const relativeSrcPath = path.relative(__dirname, item.path);
-        // item.srcPath = path.parse(relativeSrcPath);
-        // const relativeOutPath = path.relative(path.join(__dirname, 'src/packages'), item.path);
-        // item.outPath = path.parse(relativeOutPath);
-        // delete item.stats;
-        // items.push(item);
       }
     }
   }
@@ -56,17 +49,6 @@ class Package {
 }
 
 async function build(package) {
-  // const srcPath = path.relative(__dirname, file.path);
-  // const parsedSrcPath = path.parse(srcPath);
-
-  // const outPath = path.relative(path.join(__dirname, 'src/packages'), file.path);
-  // const parsedOutPath = path.parse(outPath);
-
-  // const outPath = replaceExtension(
-  //   path.relative(path.join(__dirname, 'src/packages'), file.path),
-  //   '.js'
-  // );
-
   const bundle = await rollup({
     input: package.absolutePath,
     plugins: [
@@ -76,20 +58,17 @@ async function build(package) {
         declarationMap: true,
         sourceMap: true,
         include: [`${package.srcPath.dir}/**/*.ts`],
-        // include: file.path,
-        outDir: `out/${package.outPath.dir}`,
-        declarationDir: `out/${package.outPath.dir}`,
+        outDir: `temp/${package.outPath.dir}`,
+        declarationDir: `temp/${package.outPath.dir}`,
       }),
     ],
   });
 
   return bundle.write({
     output: {
-      // file: `out/${outPath}`,
-      dir: `out/${package.outPath.dir}`,
+      dir: `temp/${package.outPath.dir}`,
       format: 'es',
       sourcemap: true,
-      // preserveModules: true,
     },
   });
 }
@@ -97,69 +76,34 @@ async function build(package) {
 async function rollupTypes(package) {
   const bundle = await rollup({
     input: path.format({
-      dir: `out/${package.outPath.dir}`,
+      dir: `temp/${package.outPath.dir}`,
       name: package.outPath.name,
       ext: '.d.ts',
     }),
     plugins: [dts()],
   });
 
-  package.rollup = {
-    dir: `out/${package.outPath.dir}`,
-    name:
-      package.outPath.name === 'index'
-        ? `rollup.${package.outPath.dir}`
-        : `rollup.${package.outPath.name}`,
-    ext: '.d.ts',
-  };
-
   return bundle.write({
     output: {
-      file: path.format({
-        // dir: `out/${package.outPath.dir}`,
-        // name:
-        //   package.outPath.name === 'index'
-        //     ? `rollup.${package.outPath.dir}`
-        //     : `rollup.${package.outPath.name}`,
-        dir: package.rollup.dir,
-        name: package.rollup.name,
-        ext: package.rollup.ext,
-      }),
+      file: path.format(package.rollup),
       format: 'es',
     },
   });
 }
 
-function replaceExtension(filePath, newExt) {
-  const { dir, name } = path.parse(filePath);
-
-  return path.format({
-    dir,
-    name,
-    ext: newExt,
-  });
-}
-
-//
-// YOU ARE HERE. YOU NEED TO MAKE THIS DYNAMIC AND HAVE IT BUILD UP ALL THE PACKAGE NAME INFO
-// FROM THE ROLLED UP .D.TS FILES
-//
 function docs(package) {
-  console.log('package', package);
   const config = ExtractorConfig.prepare({
     configObject: {
-      // mainEntryPointFilePath: path.join(__dirname, 'out/foo/rollup.foo.d.ts'),
       mainEntryPointFilePath: path.join(__dirname, path.format(package.rollup)),
       apiReport: {
         enabled: true,
-        // reportFileName: 'foo.api.md',
         reportFileName: `${package.fileSafeName}.api.md`,
-        reportFolder: 'temp',
-        reportTempFolder: 'temp',
+        reportFolder: 'out',
+        reportTempFolder: 'out',
       },
       docModel: {
         enabled: true,
-        apiJsonFilePath: path.resolve(__dirname, 'temp', `${package.fileSafeName}.api.json`),
+        apiJsonFilePath: path.resolve(__dirname, 'out', `${package.fileSafeName}.api.json`),
       },
       compiler: {
         tsconfigFilePath: '<projectFolder>/tsconfig.json',

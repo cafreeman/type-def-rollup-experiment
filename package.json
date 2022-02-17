@@ -6,7 +6,9 @@
   "author": "Chris Freeman",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf out temp && node build.js"
+    "build": "yarn clean && node build.js",
+    "clean": "rimraf out temp docs",
+    "docs": "api-documenter markdown -i out -o docs"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.19.4",
@@ -14,11 +16,13 @@
     "@types/node": "^17.0.18",
     "fs-extra": "^10.0.0",
     "klaw": "^4.0.1",
+    "rimraf": "^3.0.2",
     "rollup": "^2.67.2",
     "rollup-plugin-dts": "^4.1.0",
-    "rollup-plugin-typescript2": "^0.31.2",
     "tslib": "^2.3.1",
     "typescript": "^4.5.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@microsoft/api-documenter": "^7.15.3"
+  }
 }
